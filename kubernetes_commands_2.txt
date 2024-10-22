@@ -1,0 +1,470 @@
+* ==================================
+* Working with kubectl. Pods
+* ==================================
+C:\Users\Home>kubectl apply -f https://raw.githubusercontent.com/openshift-evangelists/kbe/main/specs/pods/pod.yaml
+pod/twocontainers created
+
+C:\Users\Home>kubectl get pods
+NAME            READY   STATUS    RESTARTS   AGE
+twocontainers   2/2     Running   0          2m35s
+
+C:\Users\Home>kubectl exec twocontainers -t -- curl -s localhost:9876/info
+Defaulted container "sise" out of: sise, shell
+{"host": "localhost:9876", "version": "0.5.0", "from": "127.0.0.1"}
+
+C:\Users\Home>kubectl describe pod twocontainers
+
+C:\Users\Home>kubectl delete pod twocontainers
+pod "twocontainers" deleted
+
+* ==================================
+* Working with kubectl. Labels
+* ==================================
+C:\Users\Home>kubectl apply -f https://github.com/openshift-evangelists/kbe/raw/main/specs/labels/pod.yaml
+pod/labelex created
+
+C:\Users\Home>kubectl get pods
+NAME      READY   STATUS    RESTARTS   AGE
+labelex   1/1     Running   0          5s
+
+C:\Users\Home>kubectl get pods --show-labels
+NAME      READY   STATUS    RESTARTS   AGE   LABELS
+labelex   1/1     Running   0          24s   env=development
+
+C:\Users\Home>kubectl label pods labelex owner=michael
+pod/labelex labeled
+
+C:\Users\Home>kubectl get pods --show-labels
+NAME      READY   STATUS    RESTARTS   AGE    LABELS
+labelex   1/1     Running   0          111s   env=development,owner=michael
+
+C:\Users\Home>kubectl get pods --selector owner=michael
+NAME      READY   STATUS    RESTARTS   AGE
+labelex   1/1     Running   0          2m14s
+
+C:\Users\Home>kubectl get pods -l env=development
+NAME      READY   STATUS    RESTARTS   AGE
+labelex   1/1     Running   0          2m24s
+
+C:\Users\Home>kubectl delete pod labelex
+pod "labelex" deleted
+
+* ==================================
+* Working with kubectl. Deployments
+* ==================================
+C:\Users\Home>kubectl apply -f https://github.com/openshift-evangelists/kbe/raw/main/specs/deployments/d09.yaml
+deployment.apps/sise-deploy created
+
+C:\Users\Home>kubectl get deployments,replicasets,pods
+
+C:\Users\Home>kubectl exec -it sise-deploy-5c668bd66b-6kxfs -- curl -s 127.0.0.1:9876/info
+{"host": "127.0.0.1:9876", "version": "0.9", "from": "127.0.0.1"}
+C:\Users\Home>kubectl apply -f https://github.com/openshift-evangelists/kbe/raw/main/specs/deployments/d10.yaml
+deployment.apps/sise-deploy configured
+
+C:\Users\Home>kubectl get pods
+
+C:\Users\Home>kubectl get pods
+NAME                           READY   STATUS    RESTARTS   AGE
+sise-deploy-7fc54767fd-nvwwx   1/1     Running   0          44s
+sise-deploy-7fc54767fd-xmmkq   1/1     Running   0          43s
+
+C:\Users\Home>kubectl exec -it sise-deploy-7fc54767fd-nvwwx -- curl -s 127.0.0.1:9876/info
+{"host": "127.0.0.1:9876", "version": "1.0", "from": "127.0.0.1"}
+C:\Users\Home>kubectl rollout history deploy/sise-deploy
+deployment.apps/sise-deploy
+REVISION  CHANGE-CAUSE
+1         <none>
+2         <none>
+
+C:\Users\Home>kubectl rollout undo deploy/sise-deploy --to-revision=1
+deployment.apps/sise-deploy rolled back
+
+C:\Users\Home>kubectl exec -it sise-deploy-5c668bd66b-pzfs9 -- curl -s 127.0.0.1:9876/info
+{"host": "127.0.0.1:9876", "version": "0.9", "from": "127.0.0.1"}
+C:\Users\Home>kubectl delete deploy sise-deploy
+deployment.apps "sise-deploy" deleted
+
+C:\Users\Home>kubectl get deployments,replicasets,pods
+No resources found in default namespace.
+
+* ==================================
+* Working with kubectl. Services
+* ==================================
+C:\Users\Home>kubectl apply -f https://raw.githubusercontent.com/openshift-evangelists/kbe/main/specs/services/rc.yaml
+replicationcontroller/rcsise created
+
+C:\Users\Home>kubectl apply -f https://raw.githubusercontent.com/openshift-evangelists/kbe/main/specs/services/svc.yaml
+service/simpleservice created
+
+C:\Users\Home>kubectl get pods -l app=sise
+NAME           READY   STATUS    RESTARTS   AGE
+rcsise-njzqr   1/1     Running   0          42s
+
+C:\Users\Home>kubectl describe pod rcsise-njzqr
+C:\Users\Home>kubectl exec rcsise-njzqr -t -- curl -s 10.1.0.117:9876/info
+{"host": "10.1.0.117:9876", "version": "0.5.0", "from": "10.1.0.117"}
+C:\Users\Home>kubectl get service
+NAME            TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+kubernetes      ClusterIP   10.96.0.1       <none>        443/TCP   19d
+simpleservice   ClusterIP   10.109.195.47   <none>        80/TCP    19m
+
+C:\Users\Home>kubectl exec rcsise-njzqr -t -- curl -s simpleservice/info
+{"host": "simpleservice", "version": "0.5.0", "from": "10.1.0.1"}
+C:\Users\Home>kubectl scale --replicas=2 rc/rcsise
+replicationcontroller/rcsise scaled
+
+C:\Users\Home>kubectl get pods -l app=sise
+NAME           READY   STATUS    RESTARTS   AGE
+rcsise-h6fgn   1/1     Running   0          22s
+rcsise-njzqr   1/1     Running   0          21m
+
+C:\Users\Home>kubectl get service
+NAME            TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+kubernetes      ClusterIP   10.96.0.1       <none>        443/TCP   19d
+simpleservice   ClusterIP   10.109.195.47   <none>        80/TCP    24m
+
+C:\Users\Home>kubectl delete svc simpleservice
+service "simpleservice" deleted
+
+C:\Users\Home>kubectl delete rc rcsise
+replicationcontroller "rcsise" deleted
+
+* ==================================
+* Working with kubectl. Port Forwarding
+* ==================================
+C:\Users\Home>kubectl apply -f https://raw.githubusercontent.com/openshift-evangelists/kbe/main/specs/pf/app.yaml
+deployment.apps/sise-deploy created
+service/simpleservice created
+
+C:\Users\Home>kubectl get svc
+NAME            TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE
+kubernetes      ClusterIP   10.96.0.1        <none>        443/TCP   19d
+simpleservice   ClusterIP   10.108.193.209   <none>        80/TCP    9s
+
+C:\Users\Home>kubectl port-forward service/simpleservice 8080:80
+Forwarding from 127.0.0.1:8080 -> 9876
+Forwarding from [::1]:8080 -> 9876
+Handling connection for 8080
+
+Do in separerate terminal 
+C:\Users\Home>curl localhost:8080/info
+{"host": "localhost:8080", "version": "0.5.0", "from": "127.0.0.1"}
+
+C:\Users\Home>kubectl get deployment
+NAME          READY   UP-TO-DATE   AVAILABLE   AGE
+sise-deploy   1/1     1            1           2m48s
+
+C:\Users\Home>kubectl delete service/simpleservice deployment/sise-deploy
+service "simpleservice" deleted
+deployment.apps "sise-deploy" deleted
+
+* ==================================
+* Working with kubectl. Health check
+* ==================================
+C:\Users\Home>kubectl apply -f https://raw.githubusercontent.com/openshift-evangelists/kbe/main/specs/healthz/pod.yaml
+pod/hc created
+
+C:\Users\Home>kubectl describe pod hc
+C:\Users\Home>kubectl apply -f https://raw.githubusercontent.com/openshift-evangelists/kbe/main/specs/healthz/badpod.yaml
+pod/badpod created
+
+C:\Users\Home>kubectl describe pod badpod
+C:\Users\Home>kubectl get pods
+C:\Users\Home>kubectl describe pod badpod
+C:\Users\Home>kubectl apply -f https://raw.githubusercontent.com/openshift-evangelists/kbe/main/specs/healthz/ready.yaml
+pod/ready created
+
+C:\Users\Home>kubectl describe pod ready
+
+C:\Users\Home>kubectl delete pod/hc pod/ready pod/badpod
+pod "hc" deleted
+pod "ready" deleted
+pod "badpod" deleted
+
+* ==================================
+* Working with kubectl. Environment Variables
+* ==================================
+C:\Users\Home>kubectl apply -f https://github.com/openshift-evangelists/kbe/raw/main/specs/envs/pod.yaml
+pod/envs created
+
+C:\Users\Home>kubectl exec envs -t -- curl -s 127.0.0.1:9876/info
+{"host": "127.0.0.1:9876", "version": "1.0", "from": "127.0.0.1"}
+C:\Users\Home>kubectl exec envs -t -- curl -s 127.0.0.1:9876/env
+{"version": "1.0", "env": "{'LANG': 'C.UTF-8', 'KUBERNETES_PORT_443_TCP_PROTO': 'tcp', 'KUBERNETES_PORT_443_TCP': 'tcp://10.96.0.1:443', 'SIMPLE_SERVICE_VERSION': '1.0', 'PYTHON_PIP_VERSION': '9.0.1', 'KUBERNETES_SERVICE_HOST': '10.96.0.1', 'HOSTNAME': 'envs', 'KUBERNETES_SERVICE_PORT_HTTPS': '443', 'REFRESHED_AT': '2017-04-24T13:50', 'GPG_KEY': 'C01E1CAD5EA2C4F0B8E3571504C367C218ADD4FF', 'KUBERNETES_PORT_443_TCP_ADDR': '10.96.0.1', 'KUBERNETES_PORT': 'tcp://10.96.0.1:443', 'PATH': '/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin', 'KUBERNETES_PORT_443_TCP_PORT': '443', 'HOME': '/root', 'KUBERNETES_SERVICE_PORT': '443', 'PYTHON_VERSION': '2.7.13'}"}
+C:\Users\Home>kubectl exec envs -- printenv
+PATH=/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+HOSTNAME=envs
+SIMPLE_SERVICE_VERSION=1.0
+KUBERNETES_PORT_443_TCP_PORT=443
+KUBERNETES_PORT_443_TCP_ADDR=10.96.0.1
+KUBERNETES_SERVICE_HOST=10.96.0.1
+KUBERNETES_SERVICE_PORT=443
+KUBERNETES_SERVICE_PORT_HTTPS=443
+KUBERNETES_PORT=tcp://10.96.0.1:443
+KUBERNETES_PORT_443_TCP=tcp://10.96.0.1:443
+KUBERNETES_PORT_443_TCP_PROTO=tcp
+LANG=C.UTF-8
+PYTHON_VERSION=2.7.13
+PYTHON_PIP_VERSION=9.0.1
+REFRESHED_AT=2017-04-24T13:50
+HOME=/root
+
+C:\Users\Home>kubectl get pods
+NAME   READY   STATUS    RESTARTS   AGE
+envs   1/1     Running   0          2m8s
+
+C:\Users\Home>kubectl delete pod/envs
+pod "envs" deleted
+
+* ==================================
+* Working with kubectl. Volumes
+* ==================================
+C:\Users\Home>kubectl apply -f https://raw.githubusercontent.com/openshift-evangelists/kbe/main/specs/volumes/pod.yaml
+pod/sharevol created
+
+C:\Users\Home>kubectl get pods
+NAME       READY   STATUS    RESTARTS   AGE
+sharevol   2/2     Running   0          13s
+
+C:\Users\Home>kubectl describe pod sharevol
+Name:             sharevol
+Namespace:        default
+Priority:         0
+Service Account:  default
+Node:             docker-desktop/192.168.65.4
+Start Time:       Wed, 24 Apr 2024 13:11:40 +0300
+Labels:           <none>
+Annotations:      <none>
+Status:           Running
+IP:               10.1.0.124
+IPs:
+  IP:  10.1.0.124
+Containers:
+  c1:
+    Container ID:  docker://b91b8ae4a45e621f8cec54b9ccf43aa6b958786b25a5e0e43f694c245bd52879
+    Image:         centos:7
+    Image ID:      docker-pullable://centos@sha256:be65f488b7764ad3638f236b7b515b3678369a5124c47b8d32916d6487418ea4
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      bin/bash
+      -c
+      sleep 10000
+    State:          Running
+      Started:      Wed, 24 Apr 2024 13:11:41 +0300
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /tmp/xchange from xchange (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-ftzcj (ro)
+  c2:
+    Container ID:  docker://1992930c12fe0a1b3bc2ccc34af14d86e5b6b11d1a82538663cdaf0e6f4b4887
+    Image:         centos:7
+    Image ID:      docker-pullable://centos@sha256:be65f488b7764ad3638f236b7b515b3678369a5124c47b8d32916d6487418ea4
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      bin/bash
+      -c
+      sleep 10000
+    State:          Running
+      Started:      Wed, 24 Apr 2024 13:11:41 +0300
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /tmp/data from xchange (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-ftzcj (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  xchange:
+    Type:       EmptyDir (a temporary directory that shares a pod's lifetime)
+    Medium:
+    SizeLimit:  <unset>
+  kube-api-access-ftzcj:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type    Reason     Age   From               Message
+  ----    ------     ----  ----               -------
+  Normal  Scheduled  35s   default-scheduler  Successfully assigned default/sharevol to docker-desktop
+  Normal  Pulled     34s   kubelet            Container image "centos:7" already present on machine
+  Normal  Created    34s   kubelet            Created container c1
+  Normal  Started    34s   kubelet            Started container c1
+  Normal  Pulled     34s   kubelet            Container image "centos:7" already present on machine
+  Normal  Created    34s   kubelet            Created container c2
+  Normal  Started    34s   kubelet            Started container c2
+
+C:\Users\Home>kubectl exec -it sharevol -c c1 -- bash
+[root@sharevol /]# mount | grep xchange
+/dev/sde on /tmp/xchange type ext4 (rw,relatime,discard,errors=remount-ro,data=ordered)
+[root@sharevol /]# echo 'some data' > /tmp/xchange/data
+[root@sharevol /]# cat /tmp/xchange/data
+some data
+[root@sharevol /]# exit
+exit
+
+C:\Users\Home>kubectl exec -it sharevol -c c2 -- bash
+[root@sharevol /]# cat /tmp/data/data
+some data
+[root@sharevol /]# exit
+exit
+
+C:\Users\Home>kubectl delete pod/sharevol
+pod "sharevol" deleted
+
+* ==================================
+* Working with kubectl. Secrets
+* ==================================
+c:\dev_other\samples>echo -n "A19fh68B001j" > apikey.txt
+
+c:\dev_other\samples>kubectl create secret generic apikey --from-file=apikey.txt
+secret/apikey created
+
+c:\dev_other\samples>kubectl describe secrets/apikey
+Name:         apikey
+Namespace:    default
+Labels:       <none>
+Annotations:  <none>
+
+Type:  Opaque
+
+Data
+====
+apikey.txt:  20 bytes
+
+c:\dev_other\samples>kubectl apply -f https://raw.githubusercontent.com/openshift-evangelists/kbe/main/specs/secrets/pod.yaml
+pod/consumesec created
+
+c:\dev_other\samples>kubectl exec -it consumesec -c shell -- bash
+[root@consumesec /]# mount | grep apikey
+tmpfs on /tmp/apikey type tmpfs (ro,relatime,size=15995300k)
+[root@consumesec /]# cat /tmp/apikey/apikey.txt
+-n "A19fh68B001j"
+[root@consumesec /]# exit
+exit
+
+c:\dev_other\samples>kubectl delete pod/consumesec secret/apikey
+pod "consumesec" deleted
+secret "apikey" deleted
+
+* ==================================
+* Working with kubectl. Logging
+* ==================================
+c:\dev_other\samples>kubectl apply -f https://raw.githubusercontent.com/openshift-evangelists/kbe/main/specs/logging/pod.yaml
+pod/logme created
+
+c:\dev_other\samples>kubectl logs --tail=5 logme -c gen
+Wed Apr 24 10:48:06 UTC 2024
+Wed Apr 24 10:48:07 UTC 2024
+c:\dev_other\samples>kubectl logs -f --since=10s logme -c gen
+
+c:\dev_other\samples>kubectl apply -f https://raw.githubusercontent.com/openshift-evangelists/kbe/main/specs/logging/oneshotpod.yaml
+pod/oneshot created
+
+c:\dev_other\samples>kubectl delete pod/logme pod/oneshot
+pod "logme" deleted
+pod "oneshot" deleted
+
+* ==================================
+* Working with kubectl. Jobs
+* ==================================
+c:\dev_other\samples>kubectl apply -f https://github.com/openshift-evangelists/kbe/raw/main/specs/jobs/job.yaml
+job.batch/countdown created
+
+c:\dev_other\samples>kubectl get jobs
+NAME        COMPLETIONS   DURATION   AGE
+countdown   1/1           5s         15s
+
+c:\dev_other\samples>kubectl get pods
+NAME              READY   STATUS      RESTARTS   AGE
+countdown-2zllt   0/1     Completed   0          51s
+
+c:\dev_other\samples>kubectl  describe pod countdown-2zllt
+Name:             countdown-2zllt
+Namespace:        default
+Priority:         0
+Service Account:  default
+Node:             docker-desktop/192.168.65.4
+Start Time:       Wed, 24 Apr 2024 13:54:54 +0300
+Labels:           controller-uid=0e9727b9-d502-4d59-b0fd-b801a9259a66
+                  job-name=countdown
+Annotations:      <none>
+Status:           Succeeded
+IP:               10.1.0.128
+IPs:
+  IP:           10.1.0.128
+Controlled By:  Job/countdown
+Containers:
+  counter:
+    Container ID:  docker://5a65546681bb2a5f77c68f0046d7319e19b8678240afab4ee28f30f2cbf717b2
+    Image:         centos:7
+    Image ID:      docker-pullable://centos@sha256:be65f488b7764ad3638f236b7b515b3678369a5124c47b8d32916d6487418ea4
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      bin/bash
+      -c
+      for i in 9 8 7 6 5 4 3 2 1 ; do echo $i ; done
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Wed, 24 Apr 2024 13:54:55 +0300
+      Finished:     Wed, 24 Apr 2024 13:54:55 +0300
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-rfckz (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             False
+  ContainersReady   False
+  PodScheduled      True
+Volumes:
+  kube-api-access-rfckz:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type    Reason     Age   From               Message
+  ----    ------     ----  ----               -------
+  Normal  Scheduled  83s   default-scheduler  Successfully assigned default/countdown-2zllt to docker-desktop
+  Normal  Pulled     83s   kubelet            Container image "centos:7" already present on machine
+  Normal  Created    83s   kubelet            Created container counter
+  Normal  Started    83s   kubelet            Started container counter
+
+c:\dev_other\samples>kubectl logs countdown-2zllt
+9
+8
+7
+6
+5
+4
+3
+2
+1
+
+c:\dev_other\samples>kubectl delete job countdown
+job.batch "countdown" deleted

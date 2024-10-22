@@ -1,0 +1,322 @@
+* ==================================
+* Switching context
+* ==================================
+C:\Users\Home>kubectl config get-contexts
+CURRENT   NAME                          CLUSTER                       AUTHINFO                                                                 NAMESPACE
+*         connect-westus3-dev           connect-westus3-dev           connect-westus3-dev_connect-westus3-dev
+          docker-desktop                docker-desktop                docker-desktop
+
+C:\Users\Home>kubectl config use-context docker-desktop
+Switched to context "docker-desktop".
+
+C:\Users\Home>kubectl config get-contexts
+CURRENT   NAME                          CLUSTER                       AUTHINFO                                                                 NAMESPACE
+          connect-eastus-dev            connect-eastus-dev            connect-eastus-dev_connect-eastus-dev
+          connect-eastus-qa             connect-eastus-qa             connect-eastus-qa_connect-eastus-qa
+          connect-westus3-dev           connect-westus3-dev           connect-westus3-dev_connect-westus3-dev
+*         docker-desktop                docker-desktop                docker-desktop
+
+* ==================================
+* Working with kubectl
+* ==================================
+
+Create
+C:\temp\delete\DockerAndKubernetesCourseCode\samples\deployments>kubectl create -f nginx.deployment.yml --save-config
+deployment.apps/my-nginx created
+
+or use apply 
+C:\temp\delete\DockerAndKubernetesCourseCode\samples\deployments>kubectl apply -f nginx.deployment.yml                
+deployment.apps/my-nginx configured
+
+Delete
+C:\temp\delete\DockerAndKubernetesCourseCode\samples\deployments>kubectl delete -f nginx.deployment.yml
+deployment.apps "my-nginx" deleted
+
+C:\temp\delete\DockerAndKubernetesCourseCode\samples\rolling-update>kubectl create -f ./ --save-config 
+deployment.apps/my-nginx created
+service/nginx-service created
+
+C:\temp\delete\DockerAndKubernetesCourseCode\samples\rolling-update>kubectl delete -f ./                           
+deployment.apps "my-nginx" deleted
+service "nginx-service" deleted
+
+Describe deployment
+C:\temp\delete\DockerAndKubernetesCourseCode>kubectl describe  deployment my-nginx  
+
+See history of deployment
+C:\temp\delete\DockerAndKubernetesCourseCode>kubectl rollout history deployment my-nginx              
+deployment.apps/my-nginx 
+REVISION  CHANGE-CAUSE
+2         kubectl apply --filename=nginx.deployment.yml --record=true
+3         <none>
+
+Rollback deployment to revision
+C:\temp\delete\DockerAndKubernetesCourseCode>kubectl rollout undo deployment my-nginx --to-revision=1 
+deployment.apps/my-nginx rolled back
+
+Get all information 
+C:\temp\delete\DockerAndKubernetesCourseCode>kubectl get all
+
+* ==================================
+* Working with jobs
+* ==================================
+Create job
+C:\temp\delete\DockerAndKubernetesCourseCode\samples\jobs>kubectl create -f pie-counter.job.yml --save-config
+job.batch/pie-counter created
+
+Get jobs
+C:\temp\delete\DockerAndKubernetesCourseCode>kubectl get jobs
+NAME          COMPLETIONS   DURATION   AGE
+pie-counter   4/4           20s        58s
+
+Describe job
+C:\temp\delete\DockerAndKubernetesCourseCode>kubectl describe job pie-counter
+
+Get logs
+C:\temp\delete\DockerAndKubernetesCourseCode>kubectl get pods
+NAME                READY   STATUS      RESTARTS   AGE
+pie-counter-2bqj4   0/1     Completed   0          2m45s
+pie-counter-6v5fn   0/1     Completed   0          2m34s
+pie-counter-ktz2d   0/1     Completed   0          2m45s
+pie-counter-nnb59   0/1     Completed   0          2m34s
+
+C:\temp\delete\DockerAndKubernetesCourseCode>kubectl logs pie-counter-2bqj4
+
+Delete job
+C:\temp\delete\DockerAndKubernetesCourseCode\samples\jobs>kubectl delete -f pie-counter.job.yml              
+job.batch "pie-counter" deleted
+
+* ==================================
+* Working with cron jobs
+* ==================================
+Create cronjob
+C:\temp\delete\DockerAndKubernetesCourseCode\samples\jobs>kubectl create -f pie-counter.cronjob.yml --save-config
+cronjob.batch/pie-counter created
+
+Get pods
+C:\temp\delete\DockerAndKubernetesCourseCode>kubectl get pods
+
+Get cronjob
+C:\temp\delete\DockerAndKubernetesCourseCode>kubectl get cronjob
+NAME          SCHEDULE      SUSPEND   ACTIVE   LAST SCHEDULE   AGE
+pie-counter   */1 * * * *   False     0        34s             52s
+
+Get pods
+C:\temp\delete\DockerAndKubernetesCourseCode>kubectl get pods   
+
+Get cronjob
+C:\temp\delete\DockerAndKubernetesCourseCode>kubectl get cronjob
+NAME          SCHEDULE      SUSPEND   ACTIVE   LAST SCHEDULE   AGE
+pie-counter   */1 * * * *   False     0        35s             2m53s
+
+Describe cronjob
+C:\temp\delete\DockerAndKubernetesCourseCode>kubectl describe cronjob pie-counter
+
+Delete cronjob
+C:\temp\delete\DockerAndKubernetesCourseCode\samples\jobs>kubectl delete -f pie-counter.cronjob.yml              
+cronjob.batch "pie-counter" deleted
+
+* ==================================
+* Troubleshooting
+* ==================================
+C:\temp\delete\DockerAndKubernetesCourseCode>kubectl get all
+NAME                            READY   STATUS    RESTARTS   AGE
+pod/my-nginx-576498859f-q5qxs   1/1     Running   0          17m
+pod/my-nginx-576498859f-vpflt   1/1     Running   0          17m
+
+NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+service/kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   175d
+
+NAME                       READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/my-nginx   2/2     2            2           17m
+
+NAME                                  DESIRED   CURRENT   READY   AGE
+replicaset.apps/my-nginx-576498859f   2         2         2       17m
+
+Information about pod
+C:\temp\delete\DockerAndKubernetesCourseCode>kubectl get pod my-nginx-576498859f-q5qxs -o yaml
+C:\temp\delete\DockerAndKubernetesCourseCode>kubectl describe pod my-nginx-576498859f-q5qxs
+
+Execute commands inside pod
+C:\temp\delete\DockerAndKubernetesCourseCode>kubectl exec my-nginx-576498859f-q5qxs -it sh
+
+Get pod logs
+C:\temp\delete\DockerAndKubernetesCourseCode>kubectl logs  my-nginx-576498859f-q5qxs  
+
+Logs streaming
+C:\temp\delete\DockerAndKubernetesCourseCode>kubectl logs -f  my-nginx-576498859f-q5qxs 
+
+* ==================================
+* Port-forwarding
+* ==================================
+C:\temp\delete\DockerAndKubernetesCourseCode\samples\deployments>kubectl apply -f nginx.deployment.yml
+deployment.apps/my-nginx created
+
+C:\temp\delete\DockerAndKubernetesCourseCode>kubectl get all
+NAME                            READY   STATUS    RESTARTS   AGE
+pod/my-nginx-576498859f-vcmcr   1/1     Running   0          14s
+pod/my-nginx-576498859f-zcgkl   1/1     Running   0          14s
+
+NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+service/kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   175d
+
+NAME                       READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/my-nginx   2/2     2            2           14s
+
+NAME                                  DESIRED   CURRENT   READY   AGE
+replicaset.apps/my-nginx-576498859f   2         2         2       14s
+
+C:\temp\delete\DockerAndKubernetesCourseCode>kubectl get pods
+NAME                        READY   STATUS    RESTARTS   AGE
+my-nginx-576498859f-vcmcr   1/1     Running   0          88s
+my-nginx-576498859f-zcgkl   1/1     Running   0          88s
+
+Port forwarding to specific node
+C:\temp\delete\DockerAndKubernetesCourseCode>kubectl port-forward pod/my-nginx-576498859f-vcmcr 8080:80    
+Forwarding from 127.0.0.1:8080 -> 80
+Forwarding from [::1]:8080 -> 80
+Handling connection for 8080
+Handling connection for 8080
+
+Port forwarding to deployment
+C:\temp\delete\DockerAndKubernetesCourseCode>kubectl get deployments
+NAME       READY   UP-TO-DATE   AVAILABLE   AGE
+my-nginx   2/2     2            2           4m57s
+
+C:\temp\delete\DockerAndKubernetesCourseCode>kubectl port-forward deployment/my-nginx  8080:80
+Forwarding from 127.0.0.1:8080 -> 80
+Forwarding from [::1]:8080 -> 80
+Handling connection for 8080
+Handling connection for 8080
+
+* ==================================
+* Services
+* ==================================
+C:\temp\delete\DockerAndKubernetesCourseCode\samples\deployments>kubectl apply -f nginx.deployment.yml
+deployment.apps/my-nginx created
+
+C:\temp\delete\DockerAndKubernetesCourseCode\samples\deployments>kubectl get pods
+NAME                        READY   STATUS    RESTARTS   AGE
+my-nginx-576498859f-vcmcr   1/1     Running   0          34m
+my-nginx-576498859f-zcgkl   1/1     Running   0          34m
+
+C:\temp\delete\DockerAndKubernetesCourseCode\samples\deployments>kubectl get pod my-nginx-576498859f-zcgkl -o yaml
+  podIPs:
+  - ip: 10.1.0.210
+
+Connection via Ip address between pods
+C:\temp\delete\DockerAndKubernetesCourseCode>kubectl exec my-nginx-576498859f-vcmcr -it sh
+/ # curl 10.1.0.210
+
+Applying ClusterIp service
+C:\temp\delete\DockerAndKubernetesCourseCode\samples\services>kubectl apply -f clusterIP.service.yml
+service/nginx-clusterip created
+
+C:\temp\delete\DockerAndKubernetesCourseCode\samples\services>kubectl get services
+NAME              TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
+kubernetes        ClusterIP   10.96.0.1      <none>        443/TCP    175d
+nginx-clusterip   ClusterIP   10.96.158.32   <none>        8080/TCP   16s
+
+Connection via ClusterIp service between pods by ip address of service ip
+C:\temp\delete\DockerAndKubernetesCourseCode>kubectl exec my-nginx-576498859f-vcmcr -it sh
+/ # curl http://10.96.158.32:8080
+
+Connection via ClusterIp service between pods by DNS name of service
+/ # curl http://nginx-clusterip:8080
+
+C:\temp\delete\DockerAndKubernetesCourseCode>kubectl delete service/nginx-clusterip
+service "nginx-clusterip" deleted
+Applying 
+
+Applying nodeport service
+C:\temp\delete\DockerAndKubernetesCourseCode\samples\services>kubectl apply -f nodeport.service.yml 
+service/nginx-nodeport created
+
+C:\temp\delete\DockerAndKubernetesCourseCode\samples\services>kubectl get services
+NAME             TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+kubernetes       ClusterIP   10.96.0.1      <none>        443/TCP        175d
+nginx-nodeport   NodePort    10.105.15.79   <none>        80:31000/TCP   6s
+
+In browser we can http://localhost:31000
+
+C:\temp\delete\DockerAndKubernetesCourseCode\samples\services>kubectl delete service/nginx-nodeport
+service "nginx-nodeport" deleted
+
+Applying loadBalancer service
+C:\temp\delete\DockerAndKubernetesCourseCode\samples\services>kubectl apply -f loadbalancer.service.yml
+service/nginx-loadbalancer created
+
+C:\temp\delete\DockerAndKubernetesCourseCode\samples\services>kubectl get all
+NAME                            READY   STATUS    RESTARTS   AGE
+pod/my-nginx-576498859f-vcmcr   1/1     Running   0          46m
+pod/my-nginx-576498859f-zcgkl   1/1     Running   0          46m
+
+NAME                         TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)                      AGE
+service/kubernetes           ClusterIP      10.96.0.1       <none>        443/TCP                      175d
+service/nginx-loadbalancer   LoadBalancer   10.109.185.23   localhost     80:30249/TCP,443:31392/TCP   3s
+
+C:\temp\delete\DockerAndKubernetesCourseCode\samples\services>kubectl delete service/nginx-loadbalancer
+service "nginx-loadbalancer" deleted
+
+Clean all
+C:\temp\delete\DockerAndKubernetesCourseCode\samples\deployments>kubectl delete -f nginx.deployment.yml
+deployment.apps "my-nginx" deleted
+
+C:\temp\delete\DockerAndKubernetesCourseCode\samples\deployments>kubectl get all
+NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+service/kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   175d
+
+* ==================================
+* ConfigMaps
+* ==================================
+C:\temp\delete\DockerAndKubernetesCourseCode\samples\configMaps>kubectl create cm app-settings --from-env-file=settings.config
+configmap/app-settings created
+
+C:\temp\delete\DockerAndKubernetesCourseCode>kubectl get cm
+NAME               DATA   AGE
+app-settings       4      89s
+kube-root-ca.crt   1      176d
+
+C:\temp\delete\DockerAndKubernetesCourseCode>kubectl get cm app-settings -o yaml
+apiVersion: v1
+data:
+  enemies: aliens
+  enemies.cheat: "true"
+  enemies.cheat.level: noGoodRotten
+  lives: "3"
+kind: ConfigMap
+metadata:
+  creationTimestamp: "2024-10-18T10:51:32Z"
+  name: app-settings
+  namespace: default
+  resourceVersion: "191551"
+  uid: f2517b03-fe07-4a43-9e45-2850c707ec8b
+
+C:\temp\delete\DockerAndKubernetesCourseCode>kubectl delete cm app-settings
+
+* ==================================
+* Secrets
+* ==================================
+C:\temp\delete\DockerAndKubernetesCourseCode\samples\secrets>kubectl create secret generic db-passwords --from-literal=db-password='password' --from-literal=db-root-password='password'
+secret/db-passwords created
+
+C:\temp\delete\DockerAndKubernetesCourseCode>kubectl get secrets
+NAME           TYPE     DATA   AGE
+db-passwords   Opaque   2      14s
+
+C:\temp\delete\DockerAndKubernetesCourseCode>kubectl get secrets db-passwords -o yaml
+apiVersion: v1
+data:
+  db-password: J3Bhc3N3b3JkJw==
+  db-root-password: J3Bhc3N3b3JkJw==
+kind: Secret
+metadata:
+  creationTimestamp: "2024-10-18T12:08:03Z"
+  name: db-passwords
+  namespace: default
+  resourceVersion: "197200"
+  uid: 85d6c1a2-05e9-46e8-be3f-d9cb9fd3fc19
+type: Opaque
+
+C:\temp\delete\DockerAndKubernetesCourseCode\samples\secrets>kubectl delete secret db-passwords
+secret "db-passwords" deleted
