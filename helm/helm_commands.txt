@@ -1,0 +1,311 @@
+C:\Users\Home>helm repo list
+NAME    URL
+stable  https://charts.helm.sh/stable
+
+C:\Users\Home>helm search repo stable/nginx
+NAME                            CHART VERSION   APP VERSION     DESCRIPTION
+stable/nginx-ingress            1.41.3          v0.34.1         DEPRECATED! An nginx Ingress controller that us...
+stable/nginx-ldapauth-proxy     0.1.6           1.13.5          DEPRECATED - nginx proxy with ldapauth
+stable/nginx-lego               0.3.1                           Chart for nginx-ingress-controller and kube-lego
+
+C:\Users\Home>helm show chart stable/nginx-ingress
+apiVersion: v1
+appVersion: v0.34.1
+deprecated: true
+description: DEPRECATED! An nginx Ingress controller that uses ConfigMap to store
+  the nginx configuration.
+home: https://github.com/kubernetes/ingress-nginx
+icon: https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Nginx_logo.svg/500px-Nginx_logo.svg.png
+keywords:
+- ingress
+- nginx
+kubeVersion: '>=1.10.0-0'
+name: nginx-ingress
+sources:
+- https://github.com/kubernetes/ingress-nginx
+version: 1.41.3
+
+C:\Users\Home>helm show readme stable/nginx-ingress
+
+C:\Users\Home>helm show values stable/nginx-ingress
+
+C:\Users\Home>helm install nginx stable/nginx-ingress --dry-run --debug
+
+C:\Users\Home>helm install nginx stable/nginx-ingress
+
+C:\Users\Home>helm list
+NAME    NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
+nginx   default         1               2024-10-22 11:46:45.4800186 +0300 EEST  deployed        nginx-ingress-1.41.3    v0.34.1
+
+C:\Users\Home>kubectl get all
+NAME                                                       READY   STATUS             RESTARTS     AGE
+pod/nginx-nginx-ingress-controller-85949c8dbb-pczqv        0/1     CrashLoopBackOff   5 (5s ago)   5m50s
+pod/nginx-nginx-ingress-default-backend-6bddd777df-prj98   1/1     Running            0            5m50s
+
+NAME                                          TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)                      AGE
+service/kubernetes                            ClusterIP      10.96.0.1        <none>        443/TCP                      180d
+service/nginx-nginx-ingress-controller        LoadBalancer   10.110.143.228   localhost     80:31755/TCP,443:31757/TCP   5m50s
+service/nginx-nginx-ingress-default-backend   ClusterIP      10.98.50.11      <none>        80/TCP                       5m50s
+
+NAME                                                  READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/nginx-nginx-ingress-controller        0/1     1            0           5m50s
+deployment.apps/nginx-nginx-ingress-default-backend   1/1     1            1           5m50s
+
+NAME                                                             DESIRED   CURRENT   READY   AGE
+replicaset.apps/nginx-nginx-ingress-controller-85949c8dbb        1         1         0       5m50s
+replicaset.apps/nginx-nginx-ingress-default-backend-6bddd777df   1         1         1       5m50s
+
+C:\Users\Home>helm list
+NAME    NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
+nginx   default         1               2024-10-22 11:46:45.4800186 +0300 EEST  deployed        nginx-ingress-1.41.3    v0.34.1
+
+C:\Users\Home>helm get notes nginx
+
+C:\Users\Home>helm uninstall nginx
+release "nginx" uninstalled
+
+************************
+C:\Users\Home>helm repo add ealenn https://ealenn.github.io/charts
+"ealenn" has been added to your repositories
+
+C:\Users\Home>helm repo list
+NAME    URL
+stable  https://charts.helm.sh/stable
+ealenn  https://ealenn.github.io/charts
+
+C:\Users\Home>helm install my-echo-server ealenn/echo-server --version 0.5.0
+
+C:\Users\Home>helm list
+NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
+my-echo-server  default         1               2024-10-22 12:33:45.8128301 +0300 EEST  deployed        echo-server-0.5.0       0.6.0
+
+C:\Users\Home>kubectl port-forward service/my-echo-server 8080:80
+Forwarding from 127.0.0.1:8080 -> 80
+Forwarding from [::1]:8080 -> 80
+
+C:\Users\Home>helm uninstall my-echo-server
+release "my-echo-server" uninstalled
+
+C:\Users\Home>helm search repo ealenn/echo-server --versions
+NAME                    CHART VERSION   APP VERSION     DESCRIPTION
+ealenn/echo-server      0.5.0           0.6.0           Echo-Server for Kubernetes
+ealenn/echo-server      0.4.0           0.5.1           Echo-Server for Kubernetes
+ealenn/echo-server      0.3.1           0.4.0           Echo-Server for Kubernetes
+ealenn/echo-server      0.3.0           0.4.0           Echo-Server for Kubernetes
+ealenn/echo-server      0.2.2           0.3.0           Echo-Server for Kubernetes
+ealenn/echo-server      0.2.1           0.3.0           Echo-Server for Kubernetes
+ealenn/echo-server      0.2.0           0.3.0           Echo-Server for Kubernetes
+ealenn/echo-server      0.1.0           0.2.0           Echo-Server for Kubernetes
+
+C:\Users\Home>helm install my-echo-server ealenn/echo-server --version 0.4.0
+
+C:\Users\Home>helm list
+NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
+my-echo-server  default         1               2024-10-22 13:14:14.7940146 +0300 EEST  deployed        echo-server-0.4.0       0.5.1
+
+C:\Users\Home>helm upgrade my-echo-server ealenn/echo-server --version 0.5.0
+Release "my-echo-server" has been upgraded. Happy Helming!
+NAME: my-echo-server
+LAST DEPLOYED: Tue Oct 22 13:15:03 2024
+NAMESPACE: default
+STATUS: deployed
+REVISION: 2
+
+C:\Users\Home>helm list
+NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
+my-echo-server  default         2               2024-10-22 13:15:03.9278554 +0300 EEST  deployed        echo-server-0.5.0       0.6.0
+
+C:\Users\Home>helm history my-echo-server
+REVISION        UPDATED                         STATUS          CHART                   APP VERSION     DESCRIPTION
+1               Tue Oct 22 13:14:14 2024        superseded      echo-server-0.4.0       0.5.1           Install complete
+2               Tue Oct 22 13:15:03 2024        deployed        echo-server-0.5.0       0.6.0           Upgrade complete
+
+C:\Users\Home>helm rollback my-echo-server 1
+Rollback was a success! Happy Helming!
+
+C:\Users\Home>helm list
+NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
+my-echo-server  default         3               2024-10-22 14:40:39.0606771 +0300 EEST  deployed        echo-server-0.4.0       0.5.1
+
+C:\Users\Home>helm history my-echo-server
+REVISION        UPDATED                         STATUS          CHART                   APP VERSION     DESCRIPTION
+1               Tue Oct 22 13:14:14 2024        superseded      echo-server-0.4.0       0.5.1           Install complete
+2               Tue Oct 22 13:15:03 2024        superseded      echo-server-0.5.0       0.6.0           Upgrade complete
+3               Tue Oct 22 14:40:39 2024        deployed        echo-server-0.4.0       0.5.1           Rollback to 1
+
+* =======================================
+* Creating a chart
+* ======================================
+c:\temp\delete>helm create ourchart
+Creating ourchart
+
+Removing unnecessary templates
+c:\temp\delete\ourchart>del templates\*.yaml
+
+Create deployment and output in templates\deployment.yaml
+c:\temp\delete\ourchart>kubectl create deployment nginx --image=nginx --dry-run=client --output=yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: nginx
+  name: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - image: nginx
+        name: nginx
+        resources: {}
+status: {}
+
+c:\temp\delete\ourchart>kubectl create deployment nginx --image=nginx --dry-run=client --output=yaml > templates\deployment.yaml
+
+Create service.
+1st need to create deployment and create service (via kubectl expose deployment) and save it to templates\service.yaml
+then deployment can be removed
+c:\temp\delete\ourchart>kubectl create deployment nginx --image=nginx
+deployment.apps/nginx created
+
+c:\temp\delete\ourchart>kubectl expose deployment nginx --type=LoadBalancer --port=80 --dry-run=client --output=yaml
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: nginx
+  name: nginx
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: nginx
+  type: LoadBalancer
+status:
+  loadBalancer: {}
+
+c:\temp\delete\ourchart>kubectl expose deployment nginx --type=LoadBalancer --port=80 --dry-run=client --output=yaml > templates\service.yaml
+
+c:\temp\delete\ourchart>kubectl delete deployment nginx
+deployment.apps "nginx" deleted
+
+Change templates\NOTES.txt
+c:\temp\delete\ourchart>del templates\NOTES.txt
+c:\temp\delete\ourchart>echo 'A test Helm Chart' > templates\NOTES.txt
+
+Remove unnecessary charts and templates\tests
+c:\temp\delete\ourchart>rmdir charts
+c:\temp\delete\ourchart>rmdir /S /Q templates\tests
+
+Install chart
+c:\temp\delete>helm install ourchart ourchart\
+NAME: ourchart
+LAST DEPLOYED: Wed Oct 23 14:14:19 2024
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+'A test Helm Chart'
+
+List charts
+c:\temp\delete>helm list
+NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
+my-echo-server  default         3               2024-10-22 14:40:39.0606771 +0300 EEST  deployed        echo-server-0.4.0       0.5.1
+ourchart        default         1               2024-10-23 14:14:19.0568744 +0300 EEST  deployed        ourchart-0.1.0          1.16.0
+
+List all kubectl
+c:\temp\delete>kubectl get all
+NAME                                  READY   STATUS    RESTARTS   AGE
+pod/my-echo-server-64f486b69f-dmptr   1/1     Running   0          23h
+pod/nginx-76d6c9b8c-nrnhk             1/1     Running   0          63s
+
+NAME                     TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
+service/kubernetes       ClusterIP      10.96.0.1        <none>        443/TCP        181d
+service/my-echo-server   ClusterIP      10.105.111.15    <none>        80/TCP         25h
+service/nginx            LoadBalancer   10.106.148.153   localhost     80:32218/TCP   63s
+
+NAME                             READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/my-echo-server   1/1     1            1           25h
+deployment.apps/nginx            1/1     1            1           63s
+
+NAME                                        DESIRED   CURRENT   READY   AGE
+replicaset.apps/my-echo-server-64f486b69f   1         1         1       25h
+replicaset.apps/my-echo-server-7b97c5ff9b   0         0         0       25h
+replicaset.apps/nginx-76d6c9b8c             1         1         1       63s
+
+c:\temp\delete>helm delete ourchart
+release "ourchart" uninstalled
+
+Change values
+c:\temp\delete>del ourchart\values.yaml
+c:\temp\delete>echo "containerImage: nginx:1.17" > ourchart\values.yaml
+
+c:\temp\delete>helm install ourchart ourchart\
+NAME: ourchart
+LAST DEPLOYED: Wed Oct 23 14:44:51 2024
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+'A test Helm Chart'
+
+c:\temp\delete>helm list
+NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
+my-echo-server  default         3               2024-10-22 14:40:39.0606771 +0300 EEST  deployed        echo-server-0.4.0       0.5.1
+ourchart        default         1               2024-10-23 14:44:51.7655672 +0300 EEST  deployed        ourchart-0.1.0          1.16.0
+
+Install chart
+c:\temp\delete>kubectl get all
+NAME                                  READY   STATUS    RESTARTS   AGE
+pod/my-echo-server-64f486b69f-dmptr   1/1     Running   0          24h
+pod/ourchart-66c9c7766-7mgt2          1/1     Running   0          60s
+
+NAME                     TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+service/kubernetes       ClusterIP      10.96.0.1       <none>        443/TCP        181d
+service/my-echo-server   ClusterIP      10.105.111.15   <none>        80/TCP         25h
+service/nginx            LoadBalancer   10.109.14.203   localhost     80:31600/TCP   60s
+
+NAME                             READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/my-echo-server   1/1     1            1           25h
+deployment.apps/ourchart         1/1     1            1           60s
+
+NAME                                        DESIRED   CURRENT   READY   AGE
+replicaset.apps/my-echo-server-64f486b69f   1         1         1       25h
+replicaset.apps/my-echo-server-7b97c5ff9b   0         0         0       25h
+replicaset.apps/ourchart-66c9c7766          1         1         1       60s
+
+c:\temp\delete>kubectl get deployment -o jsonpath="{ .items[*].spec.template.spec.containers[*].image }"
+ealen/echo-server:0.5.1 nginx:1.17
+
+Update chart
+c:\temp\delete>helm upgrade ourchart ourchart\ --set containerImage=nginx:1.18
+Release "ourchart" has been upgraded. Happy Helming!
+NAME: ourchart
+LAST DEPLOYED: Wed Oct 23 14:51:48 2024
+NAMESPACE: default
+STATUS: deployed
+REVISION: 2
+TEST SUITE: None
+NOTES:
+'A test Helm Chart'
+
+c:\temp\delete>kubectl get deployment -o jsonpath="{ .items[*].spec.template.spec.containers[*].image }"
+ealen/echo-server:0.5.1 nginx:1.18
+
+Package chart
+c:\temp\delete>helm package ourchart\ --destination c:\temp
+Successfully packaged chart and saved it to: c:\temp\ourchart-0.1.0.tgz
